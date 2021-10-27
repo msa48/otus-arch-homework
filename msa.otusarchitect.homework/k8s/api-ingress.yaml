@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: msa-otusarchitect
+  name: api-ingress
+  labels:
+    name: api-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: arch.homework
+    http:
+      paths:
+      - pathType: Prefix
+        path: /otusapp/mikhail/(.*)
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8000
+      - pathType: Prefix
+        path: "/(.*)"
+        backend:
+          service:
+            name: api-service
+            port: 
+              number: 8000
