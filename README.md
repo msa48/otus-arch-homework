@@ -1,2 +1,2 @@
-# otus-march-homework
-Домашние задания по курсу ОТУС: Микросервисная архитектура
+# About
+Домашние задания по курсу [ОТУС: Микросервисная архитектура](https://otus.ru/lessons/microservice-architecture/)
