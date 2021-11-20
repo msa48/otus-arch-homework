@@ -6,38 +6,288 @@
 	},
 	"item": [
 		{
-			"name": "Health Check",
-			"event": [
+			"name": "Health",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"pm.test(\"Heath status: OK\", function () {\r",
-							"    var jsonData = pm.response.json();\r",
-							"    pm.expect(jsonData.status).to.eql(\"OK\");\r",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{root}}/health",
-					"host": [
-						"{{root}}"
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Heath status: OK\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.status).to.eql(\"OK\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"path": [
-						"health"
-					]
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{root}}/health",
+							"host": [
+								"{{root}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "New User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Id returned\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property(\"id\");\r",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");\r",
+									"\r",
+									"    pm.variables.set(\"TEST:USER:ID\", jsonData.id);\r",
+									"    pm.variables.set(\"TEST:CONTEXT:LAST_METHOD\", pm.info.requestName);\r",
+									"    postman.setNextRequest(\"078de3c5-367a-48b5-adc5-7f95e59ab9bd\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"{{$randomUserName}}\",\r\n    \"email\": \"{{$randomExampleEmail}}\",\r\n    \"firstName\": \"{{$randomFirstName}}\",\r\n    \"lastName\": \"{{$randomLastName}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{root}}/api/users",
+							"host": [
+								"{{root}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === 'New User') {\r",
+									"    postman.setNextRequest(\"Get User List\");\r",
+									"}\r",
+									"else if (pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === 'Delete User') {\r",
+									"    postman.setNextRequest(\"Get User List\");\r",
+									"}\r",
+									"else\r",
+									"{\r",
+									"    postman.setNextRequest(null);\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.variables.has(\"TEST:USER:ID\") && pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") !== \"Delete User\") {\r",
+									"  pm.test(\"Same id returned\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData).to.have.property(\"id\");\r",
+									"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"TEST:USER:ID\"));\r",
+									"  });\r",
+									"}\r",
+									"\r",
+									"if (pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === \"Delete User\") {\r",
+									"  pm.test(\"Deleted user not found\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"  });\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{root}}/api/users/{{TEST:USER:ID}}",
+							"host": [
+								"{{root}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{TEST:USER:ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User List",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === 'New User') {\r",
+									"    postman.setNextRequest(\"Delete User\");\r",
+									"}\r",
+									"else if (pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === 'Delete User') {\r",
+									"    postman.setNextRequest(null);\r",
+									"}\r",
+									"else\r",
+									"{\r",
+									"    postman.setNextRequest(null);\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Value is array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData).to.be.an(\"array\");\r",
+									"})\r",
+									"\r",
+									"if (pm.variables.has(\"TEST:USER:ID\") && pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") !== \"Delete User\") {\r",
+									"  pm.test(\"Created user finded in array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    \r",
+									"    var item = jsonData.find(x => x.id === pm.variables.get(\"TEST:USER:ID\"));\r",
+									"    pm.expect(item).to.be.an(\"object\", \"Created user not found\");\r",
+									"  });\r",
+									"}\r",
+									"\r",
+									"if (pm.variables.has(\"TEST:USER:ID\") && pm.variables.get(\"TEST:CONTEXT:LAST_METHOD\") === \"Delete User\") {\r",
+									"  pm.test(\"Created user not finded in array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    \r",
+									"    var item = jsonData.find(x => x.id === pm.variables.get(\"TEST:USER:ID\"));\r",
+									"    pm.expect(item).to.be.undefined;\r",
+									"  });\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{root}}/api/users",
+							"host": [
+								"{{root}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"postman.setNextRequest(\"Get User\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});\r",
+									"\r",
+									"pm.variables.set(\"TEST:CONTEXT:LAST_METHOD\", pm.info.requestName);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{root}}/api/users/{{TEST:USER:ID}}",
+							"host": [
+								"{{root}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{TEST:USER:ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
@@ -63,7 +313,11 @@
 	"variable": [
 		{
 			"key": "root",
-			"value": "http://arch.homework/otusapp/mikhail"
+			"value": "http://arch.homework/otusapp/safonov_mv"
+		},
+		{
+			"key": "variable_key",
+			"value": ""
 		}
 	]
 }
