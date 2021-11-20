@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.fullname" . }}-init-db
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: init
+        image: groundnuty/k8s-wait-for
+        args:
+        - "service"
+        - "{{ include "app.fullname" . }}-mssql"
+      containers:
+      - name: mssqltools
+        image: crobles10/mssql-tools-alpine:1.0
+        command: ["sqlcmd", "-U", "SA", "-i", "/tmp/init.sql"]
+        volumeMounts:
+          - name: sql-script-volume
+            mountPath: /tmp
+            readOnly: true
+        env:
+          - name: SQLCMDPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-mssql-secret
+                key: sapassword
+          - name: SQLCMDSERVER
+            value: {{ include "app.fullname" . }}-mssql
+          - name: DatabaseName
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: databaseName
+          - name: OwnerUserName
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: username
+          - name: OwnerUserPassword
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: password      
+          - name: ConnectUserName
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-connect
+                key: username
+          - name: ConnectUserPassword
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-connect
+                key: password
+      restartPolicy: Never
+      volumes:
+        - name: sql-script-volume
+          configMap:
+              name: {{ include "app.fullname" . }}-init-db

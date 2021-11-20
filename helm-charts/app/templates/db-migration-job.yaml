@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.fullname" . }}-{{ .Chart.AppVersion }}-db-migration
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: mssqltools
+        image: crobles10/mssql-tools-alpine:1.0
+        command: ["sh", "-c", "until sqlcmd -Q \":EXIT()\"; do echo Next try after 5 seconds; sleep 5; done; echo \"Connected\""]
+        env:
+          - name: SQLCMDUSER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-db-owner
+                key: username
+          - name: SQLCMDPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-db-owner
+                key: password
+          - name: SQLCMDSERVER
+            value: {{ include "app.fullname" . }}-mssql
+          - name: SQLCMDDBNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: databaseName
+      containers:
+      - name: job
+        image: msa48/msaotusarchitecthomework:db.migrations
+        imagePullPolicy: Always
+        args: ["--username", "$(USERNAME)", "--password", "$(PASSWORD)", "--url", "jdbc:sqlserver://$(SERVER):1433;databaseName=$(DATABASE)", "update"]
+        env:
+          - name: SERVER
+            value: {{ include "app.fullname" . }}-mssql
+          - name: DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: databaseName
+          - name: USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: username
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "app.fullname" . }}-db-owner
+                key: password
+      restartPolicy: Never
+  backoffLimit: 1
