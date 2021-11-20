@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace msa.otusarchitect.homework
 {
@@ -28,8 +29,12 @@ namespace msa.otusarchitect.homework
         {
 
             services.AddControllers();
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer("name=ConnectionStrings:AppDatabase");
+            });
             services.AddHealthChecks();
-
+            services.AddSwaggerGen();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,6 +44,9 @@ namespace msa.otusarchitect.homework
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseRouting();
 

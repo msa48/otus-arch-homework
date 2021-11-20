@@ -13,7 +13,7 @@ namespace msa.otusarchitect.homework.HealthChecks
 
         internal Task Write(HttpContext context, HealthReport report)
         {
-            return context.Response.WriteAsJsonAsync<HealthCheckResponse>(new HealthCheckResponse
+            return context.Response.WriteAsJsonAsync(new HealthCheckResponse
             {
                 Status = "OK"
             });
