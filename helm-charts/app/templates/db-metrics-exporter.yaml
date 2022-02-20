@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-db-metrics-exporter
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      deployment: db-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        deployment: db-metrics-exporter
+    spec:
+      containers:
+      - name: prometheus-mssql-exporter
+        image: awaragi/prometheus-mssql-exporter
+        ports:
+        - name: metrics
+          containerPort: 4000
+          protocol: TCP
+        env:
+        - name: SERVER
+          value: {{ include "app.fullname" . }}-mssql
+        - name: USERNAME
+          value: SA
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-mssql-secret
+              key: sapassword

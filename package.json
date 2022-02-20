@@ -1,0 +1,23 @@
+{
+  "name": "otus-arch-homework",
+  "version": "1.0.0",
+  "description": "Домашние задания по курсу [ОТУС: Микросервисная архитектура](https://otus.ru/lessons/microservice-architecture/)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msa48/otus-arch-homework.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/msa48/otus-arch-homework/issues"
+  },
+  "homepage": "https://github.com/msa48/otus-arch-homework#readme",
+  "devDependencies": {
+    "@types/k6": "^0.36.0"
+  }
+}

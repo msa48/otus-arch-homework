@@ -1,0 +1,40 @@
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelectorNilUseHelmValues : false
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+
+grafana:
+  env:
+    GF_SERVER_ROOT_URL: http://kube.local/grafana
+    GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+  enabled: true
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - kube.local
+    path: /grafana
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+      folderAnnotation: meta.helm.sh/release-namespace
+      provider:
+        foldersFromFilesStructure: true
+  persistence:
+    enabled: true
+  dashboards:
+    default:
+      nginx-ingress: 
+        url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/nginx.json
+      prometheus-net-asp-core:
+        #ref: https://grafana.com/grafana/dashboards/10915
+        gnetId: 10915
+      prometheus-net-general:
+        #ref: https://grafana.com/grafana/dashboards/10427
+        gnetId: 10427
+      

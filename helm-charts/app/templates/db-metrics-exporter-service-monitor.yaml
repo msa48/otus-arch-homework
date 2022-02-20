@@ -1,0 +1,21 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "app.fullname" . }}-db-metrics-exporter-monitor
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    monitor: db-metrics-exporter
+spec:
+  jobLabel: {{ include "app.fullname" . }}-db-metrics-exporter
+  namespaceSelector:
+    matchNames:
+    - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+      deployment: db-metrics-exporter
+  podMetricsEndpoints:
+  - interval: 15s
+    port: metrics
+    path: /metrics
+{{- end }}     
